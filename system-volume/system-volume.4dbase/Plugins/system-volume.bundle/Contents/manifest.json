@@ -1,0 +1,1 @@
+﻿{"name":"system-volume","id":20000,"commands":[{"theme":"System Volume","syntax":"AUDIO SET VOLUME(&8)"},{"theme":"System Volume","syntax":"AUDIO Get volume:8"},{"theme":"System Volume","syntax":"AUDIO SET MUTE(&L)"},{"theme":"System Volume","syntax":"AUDIO Get mute:L"}]}
