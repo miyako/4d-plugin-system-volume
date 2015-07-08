@@ -12,3 +12,7 @@ AUDIO SET MUTE (1)
 AUDIO SET VOLUME ($volume)
 AUDIO SET MUTE ($mute)
 ```
+
+Uses [IAudioEndpointVolume](https://msdn.microsoft.com/en-us/library/aa964574.aspx) on Windows, [Audio Hardware Services](https://developer.apple.com/library/mac/documentation/AudioToolbox/Reference/AudioHardwareServicesReference/index.html#//apple_ref/c/func/AudioHardwareServiceGetPropertyData) on OS X.
+
+**Note**: Windows require Vista or later.
