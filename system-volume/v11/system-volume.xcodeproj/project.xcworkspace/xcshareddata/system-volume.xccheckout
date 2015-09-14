@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>31EED6C0-A4A6-487E-82DC-92B7C58EDBF1</string>
+	<key>IDESourceControlProjectName</key>
+	<string>system-volume</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>D7CE9EE3AF272DAA64778D74A2BB547253FD9F25</key>
+		<string>https://github.com/miyako/4d-plugin-system-volume.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>system-volume/v11/system-volume.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>D7CE9EE3AF272DAA64778D74A2BB547253FD9F25</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/miyako/4d-plugin-system-volume.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>D7CE9EE3AF272DAA64778D74A2BB547253FD9F25</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>D7CE9EE3AF272DAA64778D74A2BB547253FD9F25</string>
+			<key>IDESourceControlWCCName</key>
+			<string>4d-plugin-system-volume</string>
+		</dict>
+	</array>
+</dict>
+</plist>
