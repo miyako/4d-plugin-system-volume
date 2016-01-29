@@ -1,6 +1,23 @@
 # 4d-plugin-system-volume
 4D plugin to control system audio volume and mute state.
 
+##Platform
+
+| carbon | cocoa | win32 | win64 |
+|:------:|:-----:|:---------:|:---------:|
+|🆗|🆗|🆗|🆗|
+
+Commands
+---
+
+```c
+// --- System Volume
+AUDIO_SET_VOLUME
+AUDIO_Get_volume
+AUDIO_SET_MUTE
+AUDIO_Get_mute
+```
+
 ```
 $volume:=AUDIO Get volume 
 AUDIO SET VOLUME (1)
