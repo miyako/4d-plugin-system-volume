@@ -41,6 +41,41 @@ AudioDeviceID obtainDefaultOutputDevice()
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 const IID iidAEV = __uuidof(IAudioEndpointVolume);
+
+// Acquires the default render endpoint's IAudioEndpointVolume and releases it
+// (and, earlier, the enumerator and device) on every path. The original code
+// never released IAudioEndpointVolume, leaking one reference per call.
+struct EndpointVolume
+{
+    IAudioEndpointVolume *ep;
+
+    EndpointVolume() : ep(NULL)
+    {
+        IMMDeviceEnumerator *pDevEnum = NULL;
+        IMMDevice *pDev = NULL;
+
+        if(SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pDevEnum))){
+            if(SUCCEEDED(pDevEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDev))){
+                if(FAILED(pDev->Activate(iidAEV, CLSCTX_ALL, NULL, (void**)&ep))){
+                    ep = NULL;
+                }
+                pDev->Release();
+            }
+            pDevEnum->Release();
+        }
+    }
+
+    ~EndpointVolume()
+    {
+        if(ep){
+            ep->Release();
+        }
+    }
+
+private:
+    EndpointVolume(const EndpointVolume&);
+    EndpointVolume& operator=(const EndpointVolume&);
+};
 #endif
 
 void PluginMain(PA_long32 selector, PA_PluginParameters params)
@@ -92,14 +127,17 @@ void AUDIO_SET_VOLUME(sLONG_PTR *pResult, PackagePtr pParams)
     
 	Param1.fromParamAtIndex(pParams, 1);
 
-#if VERSIONMAC	
-	float						newValue = Param1.getDoubleValue();
+#if VERSIONMAC
 	AudioObjectPropertyAddress	theAddress;
 	AudioDeviceID				defaultDevID;
 	OSStatus					theError = noErr;
 	Boolean						canSetVol = YES;
-        
-    newValue = newValue > 1.0 ? 1.0 : (newValue < 0.0 ? 0.0 : newValue);       
+	double						dValue = Param1.getDoubleValue();
+
+	// ignore NaN; clamp in double BEFORE narrowing to float
+	if(dValue != dValue) return;
+	dValue = dValue > 1.0 ? 1.0 : (dValue < 0.0 ? 0.0 : dValue);
+	float newValue = (float)dValue;
 
     if((newValue < THRESHOLD)){
         AUDIO_SET_MUTE(0);
@@ -125,34 +163,23 @@ void AUDIO_SET_VOLUME(sLONG_PTR *pResult, PackagePtr pParams)
             }
         }
     }
-#else    
+#else
 
-    HRESULT hr;
-    IMMDeviceEnumerator *pDevEnum;
-    IMMDevice *pDev;
-    IAudioEndpointVolume *pIaudEndPt;
-    DWORD dwClsCtx = 0;
-    float fVolume = (float)Param1.getDoubleValue();
-    
-    fVolume = fVolume > 1.0 ? (float)1.0 : (float)(fVolume < 0.0 ? 0.0 : fVolume); 
+    double dVolume = Param1.getDoubleValue();
+
+    // ignore NaN; clamp in double BEFORE narrowing to float
+    if(dVolume != dVolume) return;
+    dVolume = dVolume > 1.0 ? 1.0 : (dVolume < 0.0 ? 0.0 : dVolume);
+    float fVolume = (float)dVolume;
     
     if((fVolume < THRESHOLD)){
         AUDIO_SET_MUTE(FALSE);
     }else{ 
         
-        hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pDevEnum);
-
-        if(hr == S_OK){
-            hr = pDevEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDev);
-            if(hr == S_OK){
-                hr = pDev->Activate(iidAEV, dwClsCtx, NULL, (void**) &pIaudEndPt);
-                if(hr == S_OK){
-                    hr = pIaudEndPt->SetMasterVolumeLevelScalar(fVolume, NULL);
-                }
-                pDev->Release();
-            }  
-            pDevEnum->Release(); 
-        }     
+        EndpointVolume v;
+        if(v.ep){
+            v.ep->SetMasterVolumeLevelScalar(fVolume, NULL);
+        }
         
     }
 #endif    
@@ -189,28 +216,11 @@ void AUDIO_Get_volume(sLONG_PTR *pResult, PackagePtr pParams)
         }
     }
 #else
-    HRESULT hr;
-    IMMDeviceEnumerator *pDevEnum;
-    IMMDevice *pDev;
-    IAudioEndpointVolume *pIaudEndPt;
-    DWORD dwClsCtx = 0;
-    float fVolume;
+    float fVolume = 0;
+    EndpointVolume v;
     
-    hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pDevEnum);
-
-    if(hr == S_OK){
-        hr = pDevEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDev);
-        if(hr == S_OK){
-            hr = pDev->Activate(iidAEV, dwClsCtx, NULL, (void**) &pIaudEndPt);
-            if(hr == S_OK){
-                hr = pIaudEndPt->GetMasterVolumeLevelScalar(&fVolume);
-                if(hr == S_OK){
-                    returnValue.setDoubleValue(fVolume);
-                }
-            }
-            pDev->Release();
-        }  
-        pDevEnum->Release(); 
+    if(v.ep && SUCCEEDED(v.ep->GetMasterVolumeLevelScalar(&fVolume))){
+        returnValue.setDoubleValue(fVolume);
     }
 #endif
     
@@ -250,24 +260,10 @@ void AUDIO_SET_MUTE(UInt32 muted){
 #if VERSIONWIN
 void AUDIO_SET_MUTE(BOOL bMute)
 {
-    HRESULT hr;
-    IMMDeviceEnumerator *pDevEnum;
-    IMMDevice *pDev;
-    IAudioEndpointVolume *pIaudEndPt;
-    DWORD dwClsCtx = 0;
-
-    hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pDevEnum);
-
-    if(hr == S_OK){
-        hr = pDevEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDev);
-        if(hr == S_OK){
-            hr = pDev->Activate(iidAEV, dwClsCtx, NULL, (void**) &pIaudEndPt);
-            if(hr == S_OK){
-                hr = pIaudEndPt->SetMute(bMute, NULL);
-            }
-            pDev->Release();
-        }  
-        pDevEnum->Release(); 
+    EndpointVolume v;
+    
+    if(v.ep){
+        v.ep->SetMute(bMute, NULL);
     }
 }
 #endif
@@ -316,28 +312,11 @@ void AUDIO_Get_mute(sLONG_PTR *pResult, PackagePtr pParams)
         }
     }
 #else
-    HRESULT hr;
-    IMMDeviceEnumerator *pDevEnum;
-    IMMDevice *pDev;
-    IAudioEndpointVolume *pIaudEndPt;
-    DWORD dwClsCtx = 0;
-    BOOL bMute;
+    BOOL bMute = FALSE;
+    EndpointVolume v;
     
-    hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pDevEnum);
-
-    if(hr == S_OK){
-        hr = pDevEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDev);
-        if(hr == S_OK){
-            hr = pDev->Activate(iidAEV, dwClsCtx, NULL, (void**) &pIaudEndPt);
-            if(hr == S_OK){
-                hr = pIaudEndPt->GetMute(&bMute);
-                if(hr == S_OK){
-                    returnValue.setIntValue(bMute ? 1 : 0);
-                }
-            }
-            pDev->Release();
-        }  
-        pDevEnum->Release(); 
+    if(v.ep && SUCCEEDED(v.ep->GetMute(&bMute))){
+        returnValue.setIntValue(bMute ? 1 : 0);
     }
 #endif
 
