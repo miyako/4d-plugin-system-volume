@@ -24,6 +24,70 @@ A 4D plugin that reads and sets the **system output volume** and **mute state** 
 
 ---
 
+## Manual versioning and publication
+
+Run **Bump version** manually on the explicitly selected branch with `patch`,
+`minor` or `major`. It validates and commits source metadata only, then pushes a
+clean direct child of the selected immutable commit without force or followed
+tags. The required executable `.github/scripts/bump-hooks/pre-push` checks the
+server-advertised old SHA, new commit and target ref; a branch advance, rewind,
+deletion or same-result race fails closed. A moved branch requires a fresh
+dispatch. Bump creates no tag and does not trigger Build.
+
+Run **Build** separately on the desired source branch. It has no inputs and
+every checkout uses the dispatch's `github.sha`, even if the branch later moves.
+Strict source `X.Y.Z` determines `vX.Y.Z` and the assets
+`system-volume-X.Y.Z.zip` / `system-volume-X.Y.Z.dmg`. There is no master-only
+restriction. Publication runs in one repository-wide cross-branch concurrency
+group without cancelling running builds.
+
+The version authority is the three source `MARKETING_VERSION` settings and
+`Info.plist`. The original bump header at `c319b1c` explicitly promised
+coordinated marketing/current/plist versions; `71be480` advanced marketing and
+the plist to **1.0.1** but left current at 1.0.0 and source English strings at
+1.0. This migration repairs only those stale source fields to existing 1.0.1,
+without an increment. `v1.0.1` already has a remote tag and published release;
+Build on this repaired source intentionally refuses to replace them. A future
+publication requires an explicit source bump. Future bumps coordinate both project keys, present plist
+version literals and both localized version strings. Valid resolved Xcode
+references are retained; absent `CFBundleVersion` stays absent. Prebuilt bundle
+metadata/binaries, dependency versions, 4D project/schema versions,
+`locversion.plist` and unrelated counters are not release inputs or bump targets.
+
+Build retains Windows x64 (MSBuild v143 / Windows SDK 10 override), macOS
+arm64+x86_64, canonical bundle merging, artifact checks, Developer ID signing and
+verification, ZIP/DMG packaging, both notarizations and DMG stapling. Its existing
+legacy native sources, project settings and external signing/notary credentials
+can still fail on current runners; this workflow migration does not bypass,
+modernize or execute those phases. Historical README platform support above is
+not an expansion of the CI build matrix.
+
+Before native work and again **after all required build/sign/notary/staple
+gates**, publication checks remote tags and authenticated, paginated releases,
+including drafts. Every page and entry must validate; API 404, auth, network,
+malformed data or later-page failures stop publication. Only a complete
+successful no-match scan permits creation. A create-only Git refs POST creates
+the tag at the selected SHA, rejecting even same-SHA races, then verifies the
+remote SHA. A separate create-only releases POST uses that tag/SHA/name,
+`draft=false`, `prerelease=false` and the original empty notes policy. Assets
+are separately POSTed to the returned new release ID, without overwriting.
+
+**Failure recovery:** no automated update, delete, rollback or retry occurs.
+A failed tag verification, release creation or upload retains any accepted tag,
+release and earlier assets. Inspect the failed run and remote state before a
+maintainer decides how to recover; do not blindly rerun Build for that version,
+as existing tags or drafts/published releases deliberately block it. A new
+version needs an intentional source bump and separate manual Build.
+
+Local lifecycle checks (no native build, signing or production publication):
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/tests -v
+actionlint .github/workflows/bump-version.yml .github/workflows/release.yml
+```
+
+---
+
 ## AUDIO SET VOLUME
 
 ### Syntax
