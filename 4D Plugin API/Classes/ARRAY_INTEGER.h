@@ -23,6 +23,8 @@ class ARRAY_INTEGER
 private:
 
 	CShortArray* _CShortArray;
+	ARRAY_INTEGER(const ARRAY_INTEGER&) = delete;
+	ARRAY_INTEGER& operator=(const ARRAY_INTEGER&) = delete;
 	
 public:
  

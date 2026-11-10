@@ -79,12 +79,21 @@ maintainer decides how to recover; do not blindly rerun Build for that version,
 as existing tags or drafts/published releases deliberately block it. A new
 version needs an intentional source bump and separate manual Build.
 
-Local lifecycle checks (no native build, signing or production publication):
+Local lifecycle and isolated ownership checks (no plugin project build, signing
+or production publication):
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/tests -v
 actionlint .github/workflows/bump-version.yml .github/workflows/release.yml
 ```
+
+The macOS ownership check compiles the complete bundled SDK, all 16 wrappers
+and actual dispatcher into an unsigned ASan/UBSan test executable. Audio,
+device and path boundaries are synthetic stubs, with an import gate before
+execution; it does not read or change the real system volume or mute state.
+Run it alone with `PYTHONDONTWRITEBYTECODE=1 python3 .github/tests/test_ownership.py -v`.
+See the [ownership audit](.github/tests/ownership-audit.md) for immutable
+baseline evidence, dormant helper fixes, exact SDK contracts and limitations.
 
 ---
 

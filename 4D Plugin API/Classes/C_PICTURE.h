@@ -28,6 +28,8 @@ extern "C" {
 		std::map<CUTF8String, uint32_t> _Types;
 		
 		PA_Picture _CPicture;
+		CPicture(const CPicture&) = delete;
+		CPicture& operator=(const CPicture&) = delete;
 		uint32_t _GetCount();
 		
 		uint32_t _Count;
@@ -78,6 +80,8 @@ extern "C" {
 	private:
 		
 		CPicture* _CPicture;
+		C_PICTURE(const C_PICTURE&) = delete;
+		C_PICTURE& operator=(const C_PICTURE&) = delete;
 
 	public:
 		

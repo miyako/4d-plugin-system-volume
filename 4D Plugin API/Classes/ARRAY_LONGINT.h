@@ -23,6 +23,8 @@ class ARRAY_LONGINT
 private:
 
 	CIntArray* _CIntArray;
+	ARRAY_LONGINT(const ARRAY_LONGINT&) = delete;
+	ARRAY_LONGINT& operator=(const ARRAY_LONGINT&) = delete;
 	
 public:
  

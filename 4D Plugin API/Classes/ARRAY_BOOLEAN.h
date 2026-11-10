@@ -23,6 +23,8 @@ class ARRAY_BOOLEAN
 private:
 
 	CboolArray* _CboolArray;
+	ARRAY_BOOLEAN(const ARRAY_BOOLEAN&) = delete;
+	ARRAY_BOOLEAN& operator=(const ARRAY_BOOLEAN&) = delete;
 	
 public:
  

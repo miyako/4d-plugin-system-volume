@@ -24,6 +24,8 @@ class ARRAY_TEXT
 private:
 
 	CUTF16StringArray* _CUTF16StringArray;
+	ARRAY_TEXT(const ARRAY_TEXT&) = delete;
+	ARRAY_TEXT& operator=(const ARRAY_TEXT&) = delete;
 	
 	void convertFromUTF8(const CUTF8String* fromString, CUTF16String* toString);		
 	void convertToUTF8(const CUTF16String* fromString, CUTF8String* toString);

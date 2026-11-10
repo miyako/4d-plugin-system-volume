@@ -26,6 +26,8 @@ class ARRAY_DATE
 private:
 
 	CDateArray* _CDateArray;
+	ARRAY_DATE(const ARRAY_DATE&) = delete;
+	ARRAY_DATE& operator=(const ARRAY_DATE&) = delete;
 	
 public:
  
