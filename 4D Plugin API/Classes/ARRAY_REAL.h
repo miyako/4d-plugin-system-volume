@@ -23,6 +23,8 @@ class ARRAY_REAL
 private:
 
 	CDoubleArray* _CDoubleArray;
+	ARRAY_REAL(const ARRAY_REAL&) = delete;
+	ARRAY_REAL& operator=(const ARRAY_REAL&) = delete;
 	
 public:
  
